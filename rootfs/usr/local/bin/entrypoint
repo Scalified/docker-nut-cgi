@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -e
+
+HOSTS_CONF_TEMPLATE_FILE=/etc/nut/hosts.conf.template
+HOSTS_CONF_FILE=/etc/nut/hosts.conf
+
+validate() {
+    eval "value=\${$1:-}"
+    if [ -z "$value" ]; then
+        echo "[ERROR]: '$1' is unset or blank"
+        exit 1
+    else
+        echo "[INFO]: $1=$value"
+    fi
+}
+
+validate "LISTEN_HOST"
+validate "LISTEN_PORT"
+validate "ADMIN_EMAIL"
+validate "MONITOR_HOSTS"
+
+cp -f "$HOSTS_CONF_TEMPLATE_FILE" "$HOSTS_CONF_FILE"
+echo "" >> "$HOSTS_CONF_FILE"
+
+for host in $MONITOR_HOSTS; do
+    echo "$host" | sed -E 's/^([^:]+):([^:]+)$/MONITOR \2 "\1"/' >> "$HOSTS_CONF_FILE"
+done
+
+echo "[INFO]: NUT '$HOSTS_CONF_FILE' created"
+
+exec "$@"

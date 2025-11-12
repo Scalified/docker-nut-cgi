@@ -23,8 +23,9 @@ validate "MONITOR_HOSTS"
 cp -f "$HOSTS_CONF_TEMPLATE_FILE" "$HOSTS_CONF_FILE"
 echo "" >> "$HOSTS_CONF_FILE"
 
-for host in $MONITOR_HOSTS; do
-    echo "$host" | sed -E 's/^([^:]+):([^:]+)$/MONITOR \2 "\1"/' >> "$HOSTS_CONF_FILE"
+for host in $(echo "$MONITOR_HOSTS" | sed 's/;/ /g'); do
+    [ -z "$host" ] && continue
+    echo "$host" | sed -E 's/^([^:]+):(.+)$/MONITOR \2 "\1"/' >> "$HOSTS_CONF_FILE"
 done
 
 echo "[INFO]: NUT '$HOSTS_CONF_FILE' created"
